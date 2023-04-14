@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">My Application</string>
+    <string name="product_name">Dove Deodorant</string>
+    <string name="description">We are committed to a landmark new initiative as part of our 2025 commitment to a more sustainable planet. Selected Dove products are sustainably sourced…</string>
+    <string name="more">More</string>
+    <string name="product_attributes">Product attributes</string>
+    <string name="product_attribute">Tap an icon to find out more</string>
+    <string name="brand_with_purpose">Brand with purpose</string>
+    <string name="peta_accredited">Peta accredited</string>
+    <string name="plus_hundred">+100</string>
+    <string name="coins">coins</string>
+    <string name="product_rating">Customer product rating</string>
+    <string name="based_on_review_count">Based on %0$d reviews</string>
+    <string name="no_reviews">No reviews yet</string>
+    <string name="check_back_soon">Check back soon!</string>
+    <string name="out_of_full_rating">/5</string>
+    <string name="add_to_favorites">Add to favorites</string>
+    <string name="similar_products">Similar products</string>
+</resources>
