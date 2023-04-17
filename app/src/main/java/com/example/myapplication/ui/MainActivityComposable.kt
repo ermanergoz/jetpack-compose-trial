@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.example.myapplication.ui
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -21,6 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.myapplication.R
+import com.example.myapplication.model.Product
 import com.example.myapplication.ui.theme.*
 import com.smarttoolfactory.ratingbar.RatingBar
 
