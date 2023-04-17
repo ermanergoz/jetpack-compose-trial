@@ -29,18 +29,18 @@ class MainActivity : ComponentActivity() {
                 val scrollState = rememberScrollState(0)
                 Column(modifier = Modifier.background(Background)) {
                     NavigationBar(
-                        { showToast("Close button pressed") },
-                        scrollState.value != 0,
-                        productState.value.name
+                        isScrolled = scrollState.value != 0,
+                        productName = productState.value.name,
+                        onButtonClick = { showToast("Close button pressed") }
                     )
                     Column(
                         modifier = Modifier
                             .verticalScroll(scrollState)
                             .weight(weight = 1f, fill = false)
                     ) {
-                        ProductCarousel(productState.value.productImages)
-                        ProductInfo(productState.value) { showToast("A product attribute pressed") }
-                        ProductRating(productState.value)
+                        ProductCarousel(imageUrls = productState.value.productImages)
+                        ProductInfo(product = productState.value) { showToast("A product attribute pressed") }
+                        ProductRating(product = productState.value)
                         SimilarProducts()
                     }
                     AddFavorites { showToast("Add favorites button pressed") }

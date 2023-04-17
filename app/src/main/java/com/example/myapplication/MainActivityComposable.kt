@@ -27,7 +27,10 @@ import com.smarttoolfactory.ratingbar.RatingBar
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NavigationBar(
-    onButtonClick: () -> Unit, isScrolled: Boolean = false, productName: String
+    modifier: Modifier = Modifier,
+    isScrolled: Boolean = false,
+    productName: String,
+    onButtonClick: () -> Unit
 ) {
     val backgroundColor = if (isScrolled) Background else Color.White
     Row(
@@ -36,6 +39,7 @@ fun NavigationBar(
             .fillMaxWidth()
             .background(backgroundColor)
             .padding(8.dp, 16.dp)
+            .then(modifier)
     ) {
         Text(
             text = if (isScrolled) productName else "",
@@ -65,14 +69,15 @@ fun NavigationBar(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ProductCarousel(imageUrls: List<String>) {
+fun ProductCarousel(modifier: Modifier = Modifier, imageUrls: List<String>) {
     val pageCount = imageUrls.size
     val pagerState = rememberPagerState()
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White),
+            .background(Color.White)
+            .then(modifier),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         HorizontalPager(pageCount = pageCount, state = pagerState) { page ->
@@ -123,13 +128,14 @@ fun ProductCarousel(imageUrls: List<String>) {
 }
 
 @Composable
-fun ProductInfo(product: Product, onAttributeClick: () -> Unit) {
+fun ProductInfo(modifier: Modifier = Modifier, product: Product, onAttributeClick: () -> Unit) {
     Box(
         modifier = Modifier
             .padding(16.dp)
             .clip(shape = Shapes.medium)
             .background(Color.White)
             .fillMaxSize()
+            .then(modifier)
     ) {
         Column(
             modifier = Modifier
@@ -225,8 +231,12 @@ private fun AttributeItem(
 }
 
 @Composable
-fun ProductRating(product: Product) {
-    Column(modifier = Modifier.padding(16.dp, 0.dp)) {
+fun ProductRating(modifier: Modifier = Modifier, product: Product) {
+    Column(
+        modifier = Modifier
+            .padding(16.dp, 0.dp)
+            .then(modifier)
+    ) {
         Text(
             text = stringResource(R.string.product_rating),
             style = Typography.h6,
@@ -275,8 +285,12 @@ fun ProductRating(product: Product) {
 }
 
 @Composable
-fun SimilarProducts() {
-    Column(modifier = Modifier.padding(8.dp, 8.dp)) {
+fun SimilarProducts(modifier: Modifier = Modifier) {
+    Column(
+        modifier = Modifier
+            .padding(8.dp, 8.dp)
+            .then(modifier)
+    ) {
         Text(
             text = stringResource(R.string.similar_products),
             style = Typography.h6,
@@ -297,12 +311,13 @@ fun SimilarProducts() {
 }
 
 @Composable
-fun AddFavorites(onButtonClick: () -> Unit) {
+fun AddFavorites(modifier: Modifier = Modifier, onButtonClick: () -> Unit) {
     Row(
         horizontalArrangement = Arrangement.Center,
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp, 16.dp)
+            .then(modifier)
     ) {
         Button(
             onClick = { onButtonClick() },
