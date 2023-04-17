@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.myapplication.R
 import com.example.myapplication.model.Product
+import com.example.myapplication.model.SimilarProductsInfo
 import com.example.myapplication.ui.theme.*
 import com.smarttoolfactory.ratingbar.RatingBar
 
@@ -94,20 +95,7 @@ fun ProductCarousel(modifier: Modifier = Modifier, imageUrls: List<String>) {
                 )
             }
         }
-        Row(
-            modifier = Modifier
-                .clip(shape = Shapes.large)
-                .background(PriceBackground)
-                .padding(8.dp)
-                .align(Alignment.CenterHorizontally)
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.ic_carousal_coin), contentDescription = null
-            )
-            Text(text = stringResource(id = R.string.plus_hundred), fontWeight = FontWeight.Bold)
-            Divider(Modifier.width(8.dp))
-            Text(text = stringResource(id = R.string.coins))
-        }
+        PriceItem(Alignment.CenterHorizontally)
         Row(
             modifier = Modifier
                 .padding(8.dp)
@@ -286,31 +274,95 @@ fun ProductRating(modifier: Modifier = Modifier, product: Product) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SimilarProducts(modifier: Modifier = Modifier) {
-    Column(
-        modifier = Modifier
-            .padding(8.dp, 8.dp)
-            .then(modifier)
-    ) {
+fun SimilarProducts(modifier: Modifier = Modifier, similarProductsInfo: SimilarProductsInfo) {
+    val pagerState = rememberPagerState()
+
+    Column(modifier = Modifier.padding(8.dp, 8.dp)) {
         Text(
             text = stringResource(R.string.similar_products),
             style = Typography.h6,
-            modifier = Modifier.padding(8.dp, 8.dp)
+            modifier = Modifier.padding(8.dp, 16.dp)
         )
         LazyRow() {
-            items(5) {
+            items(similarProductsInfo.similarProducts.size) {
                 Box(
                     modifier = Modifier
                         .padding(8.dp, 0.dp)
                         .clip(shape = Shapes.medium)
                         .background(Color.White)
-                        .size(160.dp, 240.dp)
-                )
+                        .width(280.dp)
+                        .heightIn(400.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        val similarProduct = similarProductsInfo.similarProducts[it]
+                        HorizontalPager(
+                            pageCount = similarProduct.productImages.size, state = pagerState
+                        ) { page ->
+                            AsyncImage(
+                                model = similarProduct.productImages[page],
+                                contentDescription = null
+                            )
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = similarProduct.description,
+                            minLines = 2,
+                            modifier = Modifier.padding(8.dp, 0.dp)
+                        )
+                        Spacer(Modifier.height(16.dp))
+                        Row {
+                            LeapAttributeItem(attribute = similarProduct.leapAttributes.first())
+                            if (similarProduct.leapAttributes.size > 1) {
+                                Spacer(Modifier.width(8.dp))
+                                LeapAttributeItem(attribute = "+${similarProduct.leapAttributes.size}")
+                            }
+                        }
+                        PriceItem(Alignment.Start)
+                    }
+                }
             }
         }
     }
 }
+
+@Composable
+private fun PriceItem(alignment: Alignment.Horizontal) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(0.dp, 8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .clip(shape = Shapes.large)
+                .background(PriceBackground)
+                .padding(8.dp)
+                .align(alignment)
+        ) {
+            Icon(painter = painterResource(R.drawable.ic_carousal_coin), contentDescription = null)
+            Text(text = stringResource(id = R.string.plus_hundred), fontWeight = FontWeight.Bold)
+            Spacer(Modifier.width(8.dp))
+            Text(text = stringResource(id = R.string.coins))
+        }
+    }
+}
+
+@Composable
+private fun LeapAttributeItem(attribute: String) {
+    Box(
+        modifier = Modifier
+            .clip(shape = RoundedCornerShape(8.dp))
+            .background(TextBackground)
+            .padding(8.dp)
+    ) {
+        Text(text = attribute)
+    }
+}
+
 
 @Composable
 fun AddFavorites(modifier: Modifier = Modifier, onButtonClick: () -> Unit) {

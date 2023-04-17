@@ -24,7 +24,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val productState by viewModel.productState.collectAsState()
-            viewModel.getProductInfo()
+            val similarProductsState by viewModel.similarProductsState.collectAsState()
+            viewModel.fetchProductData()
 
             MyApplicationTheme {
                 val scrollState = rememberScrollState(0)
@@ -40,7 +41,7 @@ class MainActivity : ComponentActivity() {
                         ProductCarousel(imageUrls = productState.productImages)
                         ProductInfo(product = productState) { showToast("A product attribute pressed") }
                         ProductRating(product = productState)
-                        SimilarProducts()
+                        SimilarProducts(similarProductsInfo = similarProductsState)
                     }
                     AddFavorites { showToast("Add favorites button pressed") }
                 }
