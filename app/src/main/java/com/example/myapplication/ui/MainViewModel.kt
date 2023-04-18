@@ -1,6 +1,5 @@
 package com.example.myapplication.ui
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.model.ApiHandler
@@ -11,44 +10,24 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class MainViewModel(private val apiHandler: ApiHandler) : ViewModel() {
-    private val _productState = MutableStateFlow(Product())
-    val productState: StateFlow<Product> get() = _productState
-
-    private val _similarProductsState = MutableStateFlow(SimilarProductsInfo())
-    val similarProductsState: StateFlow<SimilarProductsInfo> get() = _similarProductsState
+    private val _uiState: MutableStateFlow<UIState> =
+        MutableStateFlow(UIState.Loading)
+    val uiState: StateFlow<UIState> = _uiState
 
     fun fetchProductData() {
-        getProductInfo()
-        getSimilarProducts()
-    }
-
-    private fun getProductInfo() {
         viewModelScope.launch {
+            var product = Product()
+            var similarProductsInfo = SimilarProductsInfo()
             runCatching {
                 kotlin.runCatching {
-                    apiHandler.getProductInfo()
+                    product = apiHandler.getProductInfo()
+                    similarProductsInfo = apiHandler.getSimilarProductsInfo()
                 }.onSuccess {
-                    _productState.value = it
+                    _uiState.value = UIState.MainUIState(product, similarProductsInfo)
                 }.onFailure {
-                    Log.e("getProductInfo", it.message ?: "")
+                    _uiState.value = UIState.Error(it.message ?: "")
                 }
             }
-
-        }
-    }
-
-    private fun getSimilarProducts() {
-        viewModelScope.launch {
-            runCatching {
-                kotlin.runCatching {
-                    apiHandler.getSimilarProductsInfo()
-                }.onSuccess {
-                    _similarProductsState.value = it
-                }.onFailure {
-                    Log.e("getSimilarProducts", it.message ?: "")
-                }
-            }
-
         }
     }
 }

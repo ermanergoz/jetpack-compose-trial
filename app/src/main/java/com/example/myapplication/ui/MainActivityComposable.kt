@@ -88,11 +88,13 @@ fun ProductCarousel(modifier: Modifier = Modifier, imageUrls: List<String>) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                AsyncImage(
-                    model = imageUrls[page],
-                    contentDescription = null,
-                    modifier = Modifier.padding(16.dp)
-                )
+                if (imageUrls.isNotEmpty()) {
+                    AsyncImage(
+                        model = imageUrls[page],
+                        contentDescription = null,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
             }
         }
         PriceItem(Alignment.CenterHorizontally)
