@@ -10,9 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class MainViewModel : ViewModel() {
-    private val apiHandler = ApiHandler()
-
+class MainViewModel(private val apiHandler: ApiHandler) : ViewModel() {
     private val _productState = MutableStateFlow(Product())
     val productState: StateFlow<Product> get() = _productState
 

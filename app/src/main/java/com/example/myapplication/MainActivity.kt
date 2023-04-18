@@ -20,7 +20,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var viewModel: MainViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
+        viewModel = ViewModelProvider(this, ViewModelFactory())[MainViewModel::class.java]
 
         setContent {
             val productState by viewModel.productState.collectAsState()
