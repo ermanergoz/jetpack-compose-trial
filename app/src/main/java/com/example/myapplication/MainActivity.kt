@@ -1,7 +1,6 @@
 package com.example.myapplication
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,38 +8,38 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import com.androidnetworking.AndroidNetworking
-import com.androidnetworking.error.ANError
-import com.androidnetworking.interfaces.ParsedRequestListener
+import androidx.lifecycle.ViewModelProvider
+import com.example.myapplication.ui.*
 import com.example.myapplication.ui.theme.Background
 import com.example.myapplication.ui.theme.MyApplicationTheme
 
 class MainActivity : ComponentActivity() {
+    private lateinit var viewModel: MainViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
         setContent {
-            val productState = remember { mutableStateOf(Product()) }
-            getProductInfo { productRes -> productRes?.let { productState.value = productRes } }
+            val productState by viewModel.productState.collectAsState()
+            viewModel.getProductInfo()
+
             MyApplicationTheme {
                 val scrollState = rememberScrollState(0)
                 Column(modifier = Modifier.background(Background)) {
-                    NavigationBar(
-                        { showToast("Close button pressed") },
-                        scrollState.value != 0,
-                        productState.value.name
-                    )
+                    NavigationBar(isScrolled = scrollState.value != 0,
+                        productName = productState.name,
+                        onButtonClick = { showToast("Close button pressed") })
                     Column(
                         modifier = Modifier
                             .verticalScroll(scrollState)
                             .weight(weight = 1f, fill = false)
                     ) {
-                        ProductCarousel(productState.value.productImages)
-                        ProductInfo(productState.value) { showToast("A product attribute pressed") }
-                        ProductRating(productState.value)
+                        ProductCarousel(imageUrls = productState.productImages)
+                        ProductInfo(product = productState) { showToast("A product attribute pressed") }
+                        ProductRating(product = productState)
                         SimilarProducts()
                     }
                     AddFavorites { showToast("Add favorites button pressed") }
@@ -52,23 +51,4 @@ class MainActivity : ComponentActivity() {
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
-
-    private fun getProductInfo(callback: (product: Product?) -> Unit) {
-        AndroidNetworking.get(URL).build()
-            .getAsObject(Product::class.java, object : ParsedRequestListener<Product> {
-                override fun onResponse(response: Product) {
-                    callback(response)
-                }
-
-                override fun onError(anError: ANError?) {
-                    callback(null)
-                    anError?.errorDetail?.let {
-                        Log.e("Api Error", it)
-                        showToast(it)
-                    }
-                }
-            })
-    }
 }
-
-const val URL = "https://private-0c5632-yusuf6.apiary-mock.com/product"
