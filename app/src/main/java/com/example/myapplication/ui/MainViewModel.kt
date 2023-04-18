@@ -1,11 +1,14 @@
 package com.example.myapplication.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.myapplication.model.ApiHandler
 import com.example.myapplication.model.Product
 import com.example.myapplication.model.SimilarProductsInfo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class MainViewModel : ViewModel() {
     private val apiHandler = ApiHandler()
@@ -22,14 +25,32 @@ class MainViewModel : ViewModel() {
     }
 
     private fun getProductInfo() {
-        apiHandler.getProductInfo { productRes ->
-            _productState.value = productRes ?: Product()
+        viewModelScope.launch {
+            runCatching {
+                kotlin.runCatching {
+                    apiHandler.getProductInfo()
+                }.onSuccess {
+                    _productState.value = it
+                }.onFailure {
+                    Log.e("getProductInfo", it.message ?: "")
+                }
+            }
+
         }
     }
 
     private fun getSimilarProducts() {
-        apiHandler.getSimilarProductsInfo { productsRes ->
-            _similarProductsState.value = productsRes ?: SimilarProductsInfo()
+        viewModelScope.launch {
+            runCatching {
+                kotlin.runCatching {
+                    apiHandler.getSimilarProductsInfo()
+                }.onSuccess {
+                    _similarProductsState.value = it
+                }.onFailure {
+                    Log.e("getSimilarProducts", it.message ?: "")
+                }
+            }
+
         }
     }
 }
