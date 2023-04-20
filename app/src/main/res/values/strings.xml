@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">My Application</string>
-    <string name="product_name">Dove Deodorant</string>
     <string name="description">We are committed to a landmark new initiative as part of our 2025 commitment to a more sustainable planet. Selected Dove products are sustainably sourced…</string>
     <string name="more">More</string>
     <string name="product_attributes">Product attributes</string>

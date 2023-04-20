@@ -25,6 +25,7 @@ import com.example.myapplication.R
 import com.example.myapplication.model.Product
 import com.example.myapplication.model.SimilarProductsInfo
 import com.example.myapplication.ui.theme.*
+import com.kole.myapplication.cms.nnsettings.NNSettingsString
 import com.smarttoolfactory.ratingbar.RatingBar
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -140,37 +141,46 @@ fun ProductInfo(modifier: Modifier = Modifier, product: Product, onAttributeClic
                 modifier = Modifier.padding(0.dp, vertical = 8.dp)
             )
             Text(
-                text = stringResource(R.string.description),
+                text = NNSettingsString("BrandDescription", stringResource(R.string.description)),
                 modifier = Modifier.padding(0.dp, vertical = 8.dp)
             )
             Text(
-                text = stringResource(R.string.more),
-                color = ColorAccent,
+                text = NNSettingsString("MoreButtonText", stringResource(R.string.more)),
+                color = PrimaryColor,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(0.dp, vertical = 8.dp)
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                text = stringResource(R.string.product_attributes),
+                text = NNSettingsString(
+                    "ProductAttributeTitle", stringResource(R.string.product_attributes)
+                ),
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(0.dp, vertical = 8.dp)
             )
-            Text(text = stringResource(R.string.product_attribute))
+            Text(
+                text = NNSettingsString(
+                    "ProductAttributeExp", stringResource(R.string.product_attribute)
+                )
+            )
 
             Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
                 product.leapAttributes.forEach { attribute ->
                     when (attribute) {
                         "isBrandWithPurpose" -> {
                             AttributeItem(
-                                R.drawable.icn_is_brand_with_purpose_pdp,
-                                stringResource(R.string.brand_with_purpose),
-                                onAttributeClick
+                                R.drawable.icn_is_brand_with_purpose_pdp, NNSettingsString(
+                                    "BrandWithPurposeAttr",
+                                    stringResource(R.string.brand_with_purpose)
+                                ), onAttributeClick
                             )
                         }
                         "isPetaLeapingBunnyAccredited" -> {
                             AttributeItem(
                                 R.drawable.icn_is_peta_leaping_bunny_accredited_pdp,
-                                stringResource(R.string.peta_accredited),
+                                NNSettingsString(
+                                    "PetaAttr", stringResource(R.string.peta_accredited)
+                                ),
                                 onAttributeClick
                             )
                         }
@@ -198,7 +208,7 @@ private fun AttributeItem(
             Icon(
                 painter = painterResource(backgroundResId),
                 contentDescription = null,
-                tint = ProductAttributeIconColor,
+                tint = PrimaryColorVariant,
                 modifier = Modifier.align(Alignment.Center)
             )
         }
@@ -206,7 +216,7 @@ private fun AttributeItem(
             modifier = Modifier
                 .padding(0.dp, 8.dp)
                 .clip(shape = RoundedCornerShape(8.dp))
-                .background(TextBackground)
+                .background(AttributeTextBackground)
                 .padding(8.dp)
         ) {
             Text(
@@ -230,9 +240,9 @@ fun ProductRating(modifier: Modifier = Modifier, product: Product) {
             .then(modifier)
     ) {
         Text(
-            text = stringResource(R.string.product_rating),
-            style = Typography.h6,
-            modifier = Modifier.padding(0.dp, 8.dp)
+            text = NNSettingsString(
+                "ProdRatingNoReviewPts", stringResource(R.string.product_rating)
+            ), style = Typography.h6, modifier = Modifier.padding(0.dp, 8.dp)
         )
         Box(
             modifier = Modifier
@@ -251,15 +261,28 @@ fun ProductRating(modifier: Modifier = Modifier, product: Product) {
                 ) {
                     if (product.reviewCount > 0) {
                         Text(text = product.ratingValue.toString(), style = Typography.h5)
-                        Text(text = stringResource(R.string.out_of_full_rating))
+                        Text(
+                            text = NNSettingsString(
+                                "OutOfFullRating", stringResource(R.string.out_of_full_rating)
+                            )
+                        )
                     } else {
-                        Text(text = stringResource(R.string.no_reviews), style = Typography.h6)
+                        Text(
+                            text = NNSettingsString(
+                                "ProdRatingNoReview", stringResource(R.string.out_of_full_rating)
+                            ), style = Typography.h6
+                        )
                     }
                 }
-                var basedOnReviewCountText =
-                    stringResource(R.string.based_on_review_count, product.reviewCount)
+                var basedOnReviewCountText = NNSettingsString(
+                    "ReviewCount",
+                    stringResource(R.string.based_on_review_count, product.reviewCount),
+                    mapOf(Pair("{COUNT}", product.reviewCount.toString()))
+                )
                 if (product.reviewCount == 0) {
-                    basedOnReviewCountText = stringResource(R.string.check_back_soon)
+                    basedOnReviewCountText = NNSettingsString(
+                        "ProdRatingNoReviewCtr", stringResource(R.string.check_back_soon)
+                    )
                 }
                 Text(text = basedOnReviewCountText, color = Color.LightGray)
                 Spacer(modifier = Modifier.height(24.dp))
@@ -267,7 +290,7 @@ fun ProductRating(modifier: Modifier = Modifier, product: Product) {
                     rating = product.ratingValue.toFloat(),
                     painterEmpty = painterResource(id = R.drawable.icn_star_unfilled),
                     painterFilled = painterResource(id = R.drawable.icn_star_filled),
-                    tintEmpty = ColorAccent,
+                    tintEmpty = PrimaryColor,
                     gestureEnabled = false,
                     space = 8.dp
                 )
@@ -283,11 +306,11 @@ fun SimilarProducts(modifier: Modifier = Modifier, similarProductsInfo: SimilarP
 
     Column(modifier = Modifier.padding(8.dp, 8.dp)) {
         Text(
-            text = stringResource(R.string.similar_products),
-            style = Typography.h6,
-            modifier = Modifier.padding(8.dp, 16.dp)
+            text = NNSettingsString(
+                "SimilarProductsTitle", stringResource(R.string.similar_products)
+            ), style = Typography.h6, modifier = Modifier.padding(8.dp, 16.dp)
         )
-        LazyRow() {
+        LazyRow {
             items(similarProductsInfo.similarProducts.size) {
                 Box(
                     modifier = Modifier
@@ -346,9 +369,12 @@ private fun PriceItem(alignment: Alignment.Horizontal) {
                 .align(alignment)
         ) {
             Icon(painter = painterResource(R.drawable.ic_carousal_coin), contentDescription = null)
-            Text(text = stringResource(id = R.string.plus_hundred), fontWeight = FontWeight.Bold)
+            Text(
+                text = NNSettingsString("CoinCount", stringResource(id = R.string.plus_hundred)),
+                fontWeight = FontWeight.Bold
+            )
             Spacer(Modifier.width(8.dp))
-            Text(text = stringResource(id = R.string.coins))
+            Text(text = NNSettingsString("CoinText", stringResource(id = R.string.plus_hundred)))
         }
     }
 }
@@ -358,7 +384,7 @@ private fun LeapAttributeItem(attribute: String) {
     Box(
         modifier = Modifier
             .clip(shape = RoundedCornerShape(8.dp))
-            .background(TextBackground)
+            .background(AttributeTextBackground)
             .padding(8.dp)
     ) {
         Text(text = attribute)
@@ -378,14 +404,16 @@ fun AddFavorites(modifier: Modifier = Modifier, onButtonClick: () -> Unit) {
         Button(
             onClick = { onButtonClick() },
             shape = Shapes.large,
-            colors = ButtonDefaults.buttonColors(
-                ColorAccent
-            ),
+
             modifier = Modifier
                 .height(48.dp)
                 .fillMaxWidth()
         ) {
-            Text(text = stringResource(R.string.add_to_favorites).uppercase())
+            Text(
+                text = NNSettingsString(
+                    "AddToFavoriteButtonText", stringResource(id = R.string.plus_hundred)
+                ).uppercase()
+            )
         }
     }
 }
