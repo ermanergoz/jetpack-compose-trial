@@ -1,25 +1,28 @@
 package com.example.myapplication
 
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.example.myapplication.model.Product
-import com.example.myapplication.model.SimilarProductsInfo
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.myapplication.model.*
 import com.example.myapplication.ui.*
-import com.example.myapplication.ui.theme.Background
 import com.example.myapplication.ui.theme.MyApplicationTheme
+import com.google.gson.Gson
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private lateinit var viewModel: MainViewModel
+    private lateinit var navController: NavHostController
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel = ViewModelProvider(this, ViewModelFactory())[MainViewModel::class.java]
@@ -28,10 +31,25 @@ class MainActivity : ComponentActivity() {
             viewModel.uiState.collect { uiState ->
                 when (uiState) {
                     is UIState.Error -> onError(uiState.message)
-                    UIState.Loading -> onLoading()
+                    is UIState.Loading -> onLoading()
                     is UIState.MainUIState -> onMainUIState(
-                        uiState.product, uiState.similarProductsInfo
+                        uiState.product, uiState.productAttributesInfo, uiState.similarProductsData
                     )
+                }
+            }
+        }
+
+        viewModel.navigateTo.observe(this) { navigateTo ->
+            when (navigateTo) {
+                is NavigationDestination.MoreScreen -> {
+                    navController.navigate(navigateTo.route)
+                }
+                is NavigationDestination.MainScreen -> {
+                    navController.navigate(navigateTo.route)
+                }
+                is NavigationDestination.ProductAttributeScreen -> {
+                    val json = Uri.encode(Gson().toJson(navigateTo.productAttributeData))
+                    navController.navigate(navigateTo.route + "/$json")
                 }
             }
         }
@@ -41,25 +59,38 @@ class MainActivity : ComponentActivity() {
         viewModel.fetchProductData()
     }
 
-    private fun onMainUIState(product: Product, similarProductsInfo: SimilarProductsInfo) {
+    private fun onMainUIState(
+        product: Product,
+        productAttributesInfo: ProductAttributesData,
+        similarProductsData: SimilarProductsData
+    ) {
+        Log.e("State", "Main screen")
         setContent {
             MyApplicationTheme {
-                val scrollState = rememberScrollState(0)
-                Column(modifier = Modifier.background(Background)) {
-                    NavigationBar(isScrolled = scrollState.value != 0,
-                        productName = product.name,
-                        onButtonClick = { showToast("Close button pressed") })
-                    Column(
-                        modifier = Modifier
-                            .verticalScroll(scrollState)
-                            .weight(weight = 1f, fill = false)
-                    ) {
-                        ProductCarousel(imageUrls = product.productImages)
-                        ProductInfo(product = product) { showToast("A product attribute pressed") }
-                        ProductRating(product = product)
-                        SimilarProducts(similarProductsInfo = similarProductsInfo)
+                navController = rememberNavController()
+                NavHost(navController, NavigationDestination.MainScreen().route) {
+                    composable(NavigationDestination.MainScreen().route) {
+                        MainScreen(
+                            product, productAttributesInfo, similarProductsData
+                        ) { viewModel.handleButtonClicks(it) }
                     }
-                    AddFavorites { showToast("Add favorites button pressed") }
+                    composable(NavigationDestination.MoreScreen().route) {
+                        MoreInfoComposable(product = product) { viewModel.handleButtonClicks(it) }
+                    }
+                    composable(
+                        NavigationDestination.ProductAttributeScreen().route + SEPARATOR + NAV_ARGUMENT_PLACEHOLDER,
+                        arguments = listOf(navArgument(NAV_ARGUMENT_NAME) {
+                            type = ProductAttributeInfoType()
+                        })
+                    ) {
+                        val post =
+                            it.arguments?.getParcelable<ProductAttributeData>(NAV_ARGUMENT_NAME)
+                        post?.let { attr ->
+                            ProductAttributeComposable(productAttributeData = attr) { buttonAction ->
+                                viewModel.handleButtonClicks(buttonAction)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -73,3 +104,7 @@ class MainActivity : ComponentActivity() {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }
+
+const val SEPARATOR: String = "/"
+const val NAV_ARGUMENT_NAME: String = "productAttributeInfo"
+const val NAV_ARGUMENT_PLACEHOLDER: String = "{productAttributeInfo}"

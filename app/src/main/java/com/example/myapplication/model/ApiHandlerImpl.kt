@@ -12,15 +12,25 @@ class ApiHandlerImpl : ApiHandler {
             .build().executeForObject(Product::class.java).result
     } as Product
 
-    override suspend fun getSimilarProductsInfo(): SimilarProductsInfo =
+    override suspend fun getSimilarProductsInfo(): SimilarProductsData =
         withContext(Dispatchers.IO) {
             val response =
                 AndroidNetworking.get(NNSettingsUrl("SimilarProductsUrl", SIMILAR_PRODUCTS_URL))
                     .build().executeForJSONArray().result
             val products = Gson().fromJson(response.toString(), Array<Product>::class.java).toList()
-            return@withContext SimilarProductsInfo(products)
+            return@withContext SimilarProductsData(products)
+        }
+
+    override suspend fun getProductAttributesInfo(): ProductAttributesData =
+        withContext(Dispatchers.IO) {
+            val response =
+                AndroidNetworking.get(NNSettingsUrl("ProductAttributesUrl", PRODUCT_ATTRIBUTES_URL))
+                    .build().executeForJSONArray().result
+            val attributes = Gson().fromJson(response.toString(), Array<ProductAttributeData>::class.java).toList()
+            return@withContext ProductAttributesData(attributes)
         }
 }
 
 const val PRODUCT_INFO_URL = "https://private-0c5632-yusuf6.apiary-mock.com/product"
 const val SIMILAR_PRODUCTS_URL = "https://private-0c5632-yusuf6.apiary-mock.com/product/similar"
+const val PRODUCT_ATTRIBUTES_URL = "https://private-0c5632-yusuf6.apiary-mock.com/product/attributes"

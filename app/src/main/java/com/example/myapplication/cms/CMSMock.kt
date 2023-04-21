@@ -20,6 +20,7 @@ object CMSMock {
         //URL
         put("ProductInfoUrl", "https://private-0c5632-yusuf6.apiary-mock.com/product")
         put("SimilarProductsUrl", "https://private-0c5632-yusuf6.apiary-mock.com/product/similar")
+        put("ProductAttributesUrl", "https://private-0c5632-yusuf6.apiary-mock.com/product/attributes")
         //Color
         put("SecondaryColor", "03DAC5")
         put("BackgroundColor", "e9cb6e")
