@@ -45,9 +45,15 @@ fun ProductAttributeComposable(
     Scaffold(
         topBar = {
             TopAppBar(backgroundColor = PrimaryColor, title = {
-                Text(
-                    text = productAttributeData.name, style = Typography.h6
-                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = productAttributeData.name, style = Typography.h6
+                    )
+                }
             }, actions = {
                 Box(
                     modifier = Modifier
@@ -74,7 +80,15 @@ fun ProductAttributeComposable(
         Column(modifier = Modifier.padding(16.dp, 32.dp)) {
             Text(text = productAttributeData.title, style = Typography.h5)
             Text(
-                text = productAttributeData.description, modifier = Modifier.padding(0.dp, 32.dp)
+                text = productAttributeData.description, modifier = Modifier.padding(0.dp, 16.dp)
+            )
+            val prodAttrName = productAttributeData.name.lowercase()
+            Text(
+                text = NNSettingsString(
+                    "SimilarAttrProducts",
+                    stringResource(R.string.similar_attr_products, prodAttrName),
+                    mapOf(Pair("{ATTR_NAME}", prodAttrName)),
+                ), style = Typography.h6, modifier = Modifier.padding(0.dp, 16.dp)
             )
             SimilarProducts(productAttributeData)
         }

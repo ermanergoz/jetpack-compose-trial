@@ -64,7 +64,6 @@ class MainActivity : ComponentActivity() {
         productAttributesInfo: ProductAttributesData,
         similarProductsData: SimilarProductsData
     ) {
-        Log.e("State", "Main screen")
         setContent {
             MyApplicationTheme {
                 navController = rememberNavController()

@@ -27,9 +27,15 @@ fun MoreInfoComposable(
     Scaffold(
         topBar = {
             TopAppBar(backgroundColor = Background, title = {
-                Text(
-                    text = product.name, style = Typography.h6
-                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = product.name, style = Typography.h6
+                    )
+                }
             }, actions = {
                 Box(
                     modifier = Modifier
