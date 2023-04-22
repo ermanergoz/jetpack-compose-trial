@@ -37,5 +37,9 @@ val Typography = Typography(
         fontFamily = UnileverShilling,
         fontWeight = FontWeight.Bold,
         fontSize = 18.sp
+    ),
+    body2 = TextStyle(
+        fontFamily = UnileverShilling,
+        fontSize = 12.sp
     )
 )

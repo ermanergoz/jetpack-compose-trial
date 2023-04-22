@@ -77,7 +77,7 @@ fun ProductAttributeComposable(
             })
         }, backgroundColor = PrimaryColor
     ) {
-        Column(modifier = Modifier.padding(16.dp, 32.dp)) {
+        Column(modifier = Modifier.padding(16.dp, 0.dp)) {
             Text(text = productAttributeData.title, style = Typography.h5)
             Text(
                 text = productAttributeData.description, modifier = Modifier.padding(0.dp, 16.dp)
@@ -109,8 +109,8 @@ private fun SimilarProducts(productAttributeData: ProductAttributeData) {
                     .padding(8.dp)
                     .clip(shape = Shapes.medium)
                     .background(Color.White)
-                    .width(280.dp)
-                    .height(320.dp)
+                    .fillMaxWidth()
+                    .height(272.dp)
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp)
@@ -121,12 +121,16 @@ private fun SimilarProducts(productAttributeData: ProductAttributeData) {
                         pageCount = similarProduct.productImages.size, state = pagerState
                     ) { page ->
                         AsyncImage(
+                            modifier = Modifier.height(128.dp).fillMaxWidth(),
                             model = similarProduct.productImages[page], contentDescription = null
                         )
                     }
-                    Spacer(Modifier.height(8.dp))
                     Text(
-                        text = similarProduct.description, minLines = 4, color = Color.Black
+                        text = similarProduct.description,
+                        minLines = 3,
+                        maxLines = 3,
+                        color = Color.Black,
+                        modifier = Modifier.padding(0.dp, 8.dp)
                     )
                     PriceItem()
                 }
@@ -140,16 +144,16 @@ private fun PriceItem() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(0.dp, 8.dp)
     ) {
         Row(
             modifier = Modifier
                 .clip(shape = Shapes.large)
                 .background(PriceBackground)
-                .padding(8.dp)
+                .padding(8.dp, 4.dp)
                 .align(Alignment.Start)
         ) {
             Icon(
+                modifier = Modifier.height(16.dp),
                 painter = painterResource(R.drawable.ic_carousal_coin),
                 contentDescription = null,
                 tint = Color.Black
@@ -157,12 +161,14 @@ private fun PriceItem() {
             Text(
                 text = NNSettingsString("CoinCount", stringResource(id = R.string.plus_hundred)),
                 color = Color.Black,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                style = Typography.body2
             )
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(4.dp))
             Text(
                 text = NNSettingsString("CoinText", stringResource(id = R.string.plus_hundred)),
-                color = Color.Black
+                color = Color.Black,
+                style = Typography.body2
             )
         }
     }
