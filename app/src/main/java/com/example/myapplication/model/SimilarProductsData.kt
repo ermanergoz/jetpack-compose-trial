@@ -1,5 +1,5 @@
 package com.example.myapplication.model
 
-data class SimilarProductsInfo(
+data class SimilarProductsData(
     var similarProducts: List<Product> = emptyList()
 )

@@ -1,5 +1,6 @@
-package com.example.myapplication.ui
+package com.example.myapplication.main
 
+import android.app.Activity
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -15,6 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -22,19 +25,49 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.myapplication.R
-import com.example.myapplication.model.Product
-import com.example.myapplication.model.SimilarProductsInfo
+import com.example.myapplication.model.*
+import com.example.myapplication.NavigationDestination
 import com.example.myapplication.ui.theme.*
 import com.kole.myapplication.cms.nnsettings.NNSettingsString
 import com.smarttoolfactory.ratingbar.RatingBar
 
+@Composable
+fun MainScreen(
+    modifier: Modifier = Modifier, viewModel: MainViewModel, onButtonClicked: (ButtonAction) -> Unit
+) {
+    val mainUIState = viewModel.mainUIState.collectAsState()
+    val product = mainUIState.value.product
+    val similarProductsData = mainUIState.value.similarProductsData
+    val scrollState = rememberScrollState(0)
+
+    SetStatusBarColor()
+    Column(modifier = Modifier.background(Background)) {
+        NavigationBar(isScrolled = scrollState.value != 0,
+            productName = product.name,
+            onButtonClicked = { action -> onButtonClicked(action) })
+        Column(
+            modifier = Modifier
+                .verticalScroll(scrollState)
+                .weight(weight = 1f, fill = false)
+        ) {
+            ProductCarousel(imageUrls = product.productImages)
+            ProductInfo(
+                product = product
+            ) { action -> onButtonClicked(action) }
+            ProductRating(product = product)
+            SimilarProducts(similarProductsData = similarProductsData)
+        }
+        AddFavorites { action -> onButtonClicked(action) }
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun NavigationBar(
+private fun NavigationBar(
     modifier: Modifier = Modifier,
     isScrolled: Boolean = false,
     productName: String,
-    onButtonClick: () -> Unit
+    onButtonClicked: (ButtonAction) -> Unit
 ) {
     val backgroundColor = if (isScrolled) Background else Color.White
     Row(
@@ -64,16 +97,14 @@ fun NavigationBar(
                 tint = Color.White,
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .clickable {
-                        onButtonClick()
-                    })
+                    .clickable { onButtonClicked(ButtonAction.CloseButton) })
         }
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ProductCarousel(modifier: Modifier = Modifier, imageUrls: List<String>) {
+private fun ProductCarousel(modifier: Modifier = Modifier, imageUrls: List<String>) {
     val pageCount = imageUrls.size
     val pagerState = rememberPagerState()
 
@@ -98,7 +129,7 @@ fun ProductCarousel(modifier: Modifier = Modifier, imageUrls: List<String>) {
                 }
             }
         }
-        PriceItem(Alignment.CenterHorizontally)
+        PriceItem(Modifier.align(Alignment.CenterHorizontally))
         Row(
             modifier = Modifier
                 .padding(8.dp)
@@ -121,7 +152,11 @@ fun ProductCarousel(modifier: Modifier = Modifier, imageUrls: List<String>) {
 }
 
 @Composable
-fun ProductInfo(modifier: Modifier = Modifier, product: Product, onAttributeClick: () -> Unit) {
+private fun ProductInfo(
+    modifier: Modifier = Modifier,
+    product: Product,
+    onButtonClicked: (ButtonAction) -> Unit
+) {
     Box(
         modifier = Modifier
             .padding(16.dp)
@@ -136,7 +171,7 @@ fun ProductInfo(modifier: Modifier = Modifier, product: Product, onAttributeClic
                 .fillMaxWidth()
         ) {
             Text(
-                text = product.description,
+                text = product.name,
                 style = Typography.h6,
                 modifier = Modifier.padding(0.dp, vertical = 8.dp)
             )
@@ -144,12 +179,14 @@ fun ProductInfo(modifier: Modifier = Modifier, product: Product, onAttributeClic
                 text = NNSettingsString("BrandDescription", stringResource(R.string.description)),
                 modifier = Modifier.padding(0.dp, vertical = 8.dp)
             )
-            Text(
-                text = NNSettingsString("MoreButtonText", stringResource(R.string.more)),
+            Text(text = NNSettingsString("MoreButtonText", stringResource(R.string.more)),
                 color = PrimaryColor,
                 fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(0.dp, vertical = 8.dp)
-            )
+                modifier = Modifier
+                    .padding(0.dp, vertical = 8.dp)
+                    .clickable {
+                        onButtonClicked(ButtonAction.NavigateButton(NavigationDestination.MoreScreen()))
+                    })
             Spacer(Modifier.height(8.dp))
             Text(
                 text = NNSettingsString(
@@ -166,26 +203,23 @@ fun ProductInfo(modifier: Modifier = Modifier, product: Product, onAttributeClic
 
             Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
                 product.leapAttributes.forEach { attribute ->
-                    when (attribute) {
-                        "isBrandWithPurpose" -> {
-                            AttributeItem(
-                                R.drawable.icn_is_brand_with_purpose_pdp, NNSettingsString(
-                                    "BrandWithPurposeAttr",
-                                    stringResource(R.string.brand_with_purpose)
-                                ), onAttributeClick
-                            )
+                    val attributeIconId = when (attribute) {
+                        ProductAttribute.BRAND_WITH_PURPOSE.id -> {
+                            R.drawable.icn_is_brand_with_purpose_pdp
                         }
-                        "isPetaLeapingBunnyAccredited" -> {
-                            AttributeItem(
-                                R.drawable.icn_is_peta_leaping_bunny_accredited_pdp,
-                                NNSettingsString(
-                                    "PetaAttr", stringResource(R.string.peta_accredited)
-                                ),
-                                onAttributeClick
-                            )
+                        ProductAttribute.PETA_ACCREDITED.id -> {
+                            R.drawable.icn_is_peta_leaping_bunny_accredited_pdp
                         }
-                        // TODO: Add the rest
+                        // Todo: Add the rest
+                        else -> 0
                     }
+                    ProductAttribute.getAttributeById(attribute)?.let {
+                            AttributeItem(
+                                attributeIconId = attributeIconId,
+                                productAttribute = it,
+                                onButtonClicked = onButtonClicked
+                            )
+                        }
                 }
             }
         }
@@ -194,19 +228,28 @@ fun ProductInfo(modifier: Modifier = Modifier, product: Product, onAttributeClic
 
 @Composable
 private fun AttributeItem(
-    backgroundResId: Int, attributeName: String, onAttributeClick: () -> Unit
+    modifier: Modifier = Modifier,
+    attributeIconId: Int,
+    productAttribute: ProductAttribute,
+    onButtonClicked: (ButtonAction) -> Unit
 ) {
     Column(
         modifier = Modifier.padding(8.dp, 16.dp), horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(modifier = Modifier.clickable {
-            onAttributeClick()
+            onButtonClicked(
+                ButtonAction.NavigateButton(
+                    NavigationDestination.ProductAttributeScreen(
+                        productAttribute = productAttribute
+                    )
+                )
+            )
         }) {
             Image(
                 painter = painterResource(R.drawable.bg_polygon), contentDescription = null
             )
             Icon(
-                painter = painterResource(backgroundResId),
+                painter = painterResource(attributeIconId),
                 contentDescription = null,
                 tint = PrimaryColorVariant,
                 modifier = Modifier.align(Alignment.Center)
@@ -220,7 +263,7 @@ private fun AttributeItem(
                 .padding(8.dp)
         ) {
             Text(
-                text = attributeName,
+                text = productAttribute.attributeName,
                 modifier = Modifier
                     .widthIn(max = 128.dp)
                     .wrapContentHeight(),
@@ -301,7 +344,7 @@ fun ProductRating(modifier: Modifier = Modifier, product: Product) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SimilarProducts(modifier: Modifier = Modifier, similarProductsInfo: SimilarProductsInfo) {
+fun SimilarProducts(modifier: Modifier = Modifier, similarProductsData: SimilarProductsData) {
     val pagerState = rememberPagerState()
 
     Column(modifier = Modifier.padding(8.dp, 8.dp)) {
@@ -311,7 +354,7 @@ fun SimilarProducts(modifier: Modifier = Modifier, similarProductsInfo: SimilarP
             ), style = Typography.h6, modifier = Modifier.padding(8.dp, 16.dp)
         )
         LazyRow {
-            items(similarProductsInfo.similarProducts.size) {
+            items(similarProductsData.similarProducts.size) {
                 Box(
                     modifier = Modifier
                         .padding(8.dp, 0.dp)
@@ -323,7 +366,7 @@ fun SimilarProducts(modifier: Modifier = Modifier, similarProductsInfo: SimilarP
                     Column(
                         modifier = Modifier.padding(16.dp)
                     ) {
-                        val similarProduct = similarProductsInfo.similarProducts[it]
+                        val similarProduct = similarProductsData.similarProducts[it]
                         HorizontalPager(
                             pageCount = similarProduct.productImages.size, state = pagerState
                         ) { page ->
@@ -346,7 +389,7 @@ fun SimilarProducts(modifier: Modifier = Modifier, similarProductsInfo: SimilarP
                                 LeapAttributeItem(attribute = "+${similarProduct.leapAttributes.size}")
                             }
                         }
-                        PriceItem(Alignment.Start)
+                        PriceItem(Modifier.align(Alignment.Start))
                     }
                 }
             }
@@ -355,7 +398,7 @@ fun SimilarProducts(modifier: Modifier = Modifier, similarProductsInfo: SimilarP
 }
 
 @Composable
-private fun PriceItem(alignment: Alignment.Horizontal) {
+private fun PriceItem(modifier: Modifier = Modifier) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -366,7 +409,7 @@ private fun PriceItem(alignment: Alignment.Horizontal) {
                 .clip(shape = Shapes.large)
                 .background(PriceBackground)
                 .padding(8.dp)
-                .align(alignment)
+                .then(modifier)
         ) {
             Icon(painter = painterResource(R.drawable.ic_carousal_coin), contentDescription = null)
             Text(
@@ -380,7 +423,7 @@ private fun PriceItem(alignment: Alignment.Horizontal) {
 }
 
 @Composable
-private fun LeapAttributeItem(attribute: String) {
+private fun LeapAttributeItem(modifier: Modifier = Modifier, attribute: String) {
     Box(
         modifier = Modifier
             .clip(shape = RoundedCornerShape(8.dp))
@@ -393,7 +436,7 @@ private fun LeapAttributeItem(attribute: String) {
 
 
 @Composable
-fun AddFavorites(modifier: Modifier = Modifier, onButtonClick: () -> Unit) {
+private fun AddFavorites(modifier: Modifier = Modifier, onButtonClicked: (ButtonAction) -> Unit) {
     Row(
         horizontalArrangement = Arrangement.Center,
         modifier = Modifier
@@ -402,8 +445,7 @@ fun AddFavorites(modifier: Modifier = Modifier, onButtonClick: () -> Unit) {
             .then(modifier)
     ) {
         Button(
-            onClick = { onButtonClick() },
-            shape = Shapes.large,
+            onClick = { onButtonClicked(ButtonAction.FavoriteButton) }, shape = Shapes.large,
 
             modifier = Modifier
                 .height(48.dp)
@@ -414,6 +456,18 @@ fun AddFavorites(modifier: Modifier = Modifier, onButtonClick: () -> Unit) {
                     "AddToFavoriteButtonText", stringResource(id = R.string.plus_hundred)
                 ).uppercase()
             )
+        }
+    }
+}
+
+@Composable
+private fun SetStatusBarColor() {
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = Background.toArgb()
+            window.navigationBarColor = Background.toArgb()
         }
     }
 }
