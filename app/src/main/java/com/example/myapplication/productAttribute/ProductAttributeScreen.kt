@@ -1,6 +1,7 @@
 package com.example.myapplication.productAttribute
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,11 +18,14 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -29,10 +33,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.myapplication.R
 import com.example.myapplication.model.*
-import com.example.myapplication.ui.theme.PriceBackground
-import com.example.myapplication.ui.theme.PrimaryColor
-import com.example.myapplication.ui.theme.Shapes
-import com.example.myapplication.ui.theme.Typography
+import com.example.myapplication.ui.theme.*
 import com.kole.myapplication.cms.nnsettings.NNSettingsString
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -48,6 +49,7 @@ fun ProductAttributeComposable(
         productAttributesUIState.productAttributesData.productAttributesInfo.find { it.id == productAttribute.id }
     val similarAttrProductsData = productAttributesUIState.similarAttrProductsData
 
+    SetStatusBarColor()
     Scaffold(
         topBar = {
             TopAppBar(backgroundColor = PrimaryColor, title = {
@@ -176,6 +178,18 @@ private fun PriceItem(modifier: Modifier = Modifier) {
                 color = Color.Black,
                 style = Typography.body2
             )
+        }
+    }
+}
+
+@Composable
+private fun SetStatusBarColor() {
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = PrimaryColor.toArgb()
+            window.navigationBarColor = PrimaryColor.toArgb()
         }
     }
 }

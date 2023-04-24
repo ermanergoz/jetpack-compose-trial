@@ -1,5 +1,6 @@
 package com.example.myapplication.main
 
+import android.app.Activity
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -15,6 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -35,8 +38,9 @@ fun MainScreen(
     val mainUIState = viewModel.mainUIState.collectAsState()
     val product = mainUIState.value.product
     val similarProductsData = mainUIState.value.similarProductsData
-
     val scrollState = rememberScrollState(0)
+
+    SetStatusBarColor()
     Column(modifier = Modifier.background(Background)) {
         NavigationBar(isScrolled = scrollState.value != 0,
             productName = product.name,
@@ -452,6 +456,18 @@ private fun AddFavorites(modifier: Modifier = Modifier, onButtonClicked: (Button
                     "AddToFavoriteButtonText", stringResource(id = R.string.plus_hundred)
                 ).uppercase()
             )
+        }
+    }
+}
+
+@Composable
+private fun SetStatusBarColor() {
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = Background.toArgb()
+            window.navigationBarColor = Background.toArgb()
         }
     }
 }
