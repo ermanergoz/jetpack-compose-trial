@@ -1,9 +1,5 @@
 package com.example.myapplication.model
 
-import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
-
-@Parcelize
 data class Product(
     var name: String = "",
     var description: String = "",
@@ -15,4 +11,4 @@ data class Product(
     var reviewCount: Int = 0,
     var ratingValue: Double = 0.0,
     var points: Int = 0
-): Parcelable
+)

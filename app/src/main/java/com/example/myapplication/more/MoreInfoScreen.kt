@@ -1,4 +1,4 @@
-package com.example.myapplication.ui
+package com.example.myapplication.more
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
@@ -9,21 +9,23 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.model.ButtonAction
-import com.example.myapplication.model.Product
+import com.example.myapplication.main.MainViewModel
 import com.example.myapplication.ui.theme.Background
 import com.example.myapplication.ui.theme.Typography
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun MoreInfoComposable(
-    modifier: Modifier = Modifier, product: Product, onButtonClicked: (ButtonAction) -> Unit
+    modifier: Modifier = Modifier, viewModel: MainViewModel, onButtonClicked: (ButtonAction) -> Unit
 ) {
+    val product = viewModel.mainUIState.collectAsState().value.product
     Scaffold(
         topBar = {
             TopAppBar(backgroundColor = Background, title = {
@@ -49,11 +51,7 @@ fun MoreInfoComposable(
                         modifier = Modifier
                             .align(Alignment.Center)
                             .clickable {
-                                onButtonClicked(
-                                    ButtonAction.NavigateButton(
-                                        NavigationDestination.MainScreen()
-                                    )
-                                )
+                                onButtonClicked(ButtonAction.CloseButton)
                             })
                 }
             })

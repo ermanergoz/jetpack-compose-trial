@@ -1,4 +1,4 @@
-package com.example.myapplication.ui
+package com.example.myapplication.main
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -23,17 +23,19 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.myapplication.R
 import com.example.myapplication.model.*
+import com.example.myapplication.NavigationDestination
 import com.example.myapplication.ui.theme.*
 import com.kole.myapplication.cms.nnsettings.NNSettingsString
 import com.smarttoolfactory.ratingbar.RatingBar
 
 @Composable
 fun MainScreen(
-    product: Product,
-    productAttributesInfo: ProductAttributesData,
-    similarProductsData: SimilarProductsData,
-    onButtonClicked: (ButtonAction) -> Unit
+    modifier: Modifier = Modifier, viewModel: MainViewModel, onButtonClicked: (ButtonAction) -> Unit
 ) {
+    val mainUIState = viewModel.mainUIState.collectAsState()
+    val product = mainUIState.value.product
+    val similarProductsData = mainUIState.value.similarProductsData
+
     val scrollState = rememberScrollState(0)
     Column(modifier = Modifier.background(Background)) {
         NavigationBar(isScrolled = scrollState.value != 0,
@@ -46,9 +48,7 @@ fun MainScreen(
         ) {
             ProductCarousel(imageUrls = product.productImages)
             ProductInfo(
-                product = product,
-                productAttributesInfo = productAttributesInfo,
-                similarProductsData = similarProductsData
+                product = product
             ) { action -> onButtonClicked(action) }
             ProductRating(product = product)
             SimilarProducts(similarProductsData = similarProductsData)
@@ -59,7 +59,7 @@ fun MainScreen(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun NavigationBar(
+private fun NavigationBar(
     modifier: Modifier = Modifier,
     isScrolled: Boolean = false,
     productName: String,
@@ -100,7 +100,7 @@ fun NavigationBar(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ProductCarousel(modifier: Modifier = Modifier, imageUrls: List<String>) {
+private fun ProductCarousel(modifier: Modifier = Modifier, imageUrls: List<String>) {
     val pageCount = imageUrls.size
     val pagerState = rememberPagerState()
 
@@ -125,7 +125,7 @@ fun ProductCarousel(modifier: Modifier = Modifier, imageUrls: List<String>) {
                 }
             }
         }
-        PriceItem(Alignment.CenterHorizontally)
+        PriceItem(Modifier.align(Alignment.CenterHorizontally))
         Row(
             modifier = Modifier
                 .padding(8.dp)
@@ -148,11 +148,9 @@ fun ProductCarousel(modifier: Modifier = Modifier, imageUrls: List<String>) {
 }
 
 @Composable
-fun ProductInfo(
+private fun ProductInfo(
     modifier: Modifier = Modifier,
     product: Product,
-    productAttributesInfo: ProductAttributesData,
-    similarProductsData: SimilarProductsData,
     onButtonClicked: (ButtonAction) -> Unit
 ) {
     Box(
@@ -201,25 +199,23 @@ fun ProductInfo(
 
             Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
                 product.leapAttributes.forEach { attribute ->
-                    val productAttributeInfo =
-                        productAttributesInfo.productAttributesInfo.find { it.id == attribute }
-                    productAttributeInfo?.let { productAttributeData ->
-                        productAttributeData.name = when (attribute) {
-                            ProductAttribute.BRAND_WITH_PURPOSE.id -> ProductAttribute.BRAND_WITH_PURPOSE.attributeName
-                            ProductAttribute.PETA_ACCREDITED.id -> ProductAttribute.PETA_ACCREDITED.attributeName
-                            // Todo: Add the rest
-                            else -> ""
+                    val attributeIconId = when (attribute) {
+                        ProductAttribute.BRAND_WITH_PURPOSE.id -> {
+                            R.drawable.icn_is_brand_with_purpose_pdp
                         }
-                        productAttributeData.similarProductsData = similarProductsData
-                        AttributeItem(
-                            when (attribute) {
-                                ProductAttribute.BRAND_WITH_PURPOSE.id -> R.drawable.icn_is_brand_with_purpose_pdp
-                                ProductAttribute.PETA_ACCREDITED.id -> R.drawable.icn_is_peta_leaping_bunny_accredited_pdp
-                                // Todo: Add the rest
-                                else -> 0
-                            }, productAttributeInfo, onButtonClicked
-                        )
+                        ProductAttribute.PETA_ACCREDITED.id -> {
+                            R.drawable.icn_is_peta_leaping_bunny_accredited_pdp
+                        }
+                        // Todo: Add the rest
+                        else -> 0
                     }
+                    ProductAttribute.getAttributeById(attribute)?.let {
+                            AttributeItem(
+                                attributeIconId = attributeIconId,
+                                productAttribute = it,
+                                onButtonClicked = onButtonClicked
+                            )
+                        }
                 }
             }
         }
@@ -228,8 +224,9 @@ fun ProductInfo(
 
 @Composable
 private fun AttributeItem(
-    backgroundResId: Int,
-    productAttributeData: ProductAttributeData,
+    modifier: Modifier = Modifier,
+    attributeIconId: Int,
+    productAttribute: ProductAttribute,
     onButtonClicked: (ButtonAction) -> Unit
 ) {
     Column(
@@ -239,7 +236,7 @@ private fun AttributeItem(
             onButtonClicked(
                 ButtonAction.NavigateButton(
                     NavigationDestination.ProductAttributeScreen(
-                        productAttributeData = productAttributeData
+                        productAttribute = productAttribute
                     )
                 )
             )
@@ -248,7 +245,7 @@ private fun AttributeItem(
                 painter = painterResource(R.drawable.bg_polygon), contentDescription = null
             )
             Icon(
-                painter = painterResource(backgroundResId),
+                painter = painterResource(attributeIconId),
                 contentDescription = null,
                 tint = PrimaryColorVariant,
                 modifier = Modifier.align(Alignment.Center)
@@ -262,7 +259,7 @@ private fun AttributeItem(
                 .padding(8.dp)
         ) {
             Text(
-                text = productAttributeData.name,
+                text = productAttribute.attributeName,
                 modifier = Modifier
                     .widthIn(max = 128.dp)
                     .wrapContentHeight(),
@@ -388,7 +385,7 @@ fun SimilarProducts(modifier: Modifier = Modifier, similarProductsData: SimilarP
                                 LeapAttributeItem(attribute = "+${similarProduct.leapAttributes.size}")
                             }
                         }
-                        PriceItem(Alignment.Start)
+                        PriceItem(Modifier.align(Alignment.Start))
                     }
                 }
             }
@@ -397,7 +394,7 @@ fun SimilarProducts(modifier: Modifier = Modifier, similarProductsData: SimilarP
 }
 
 @Composable
-private fun PriceItem(alignment: Alignment.Horizontal) {
+private fun PriceItem(modifier: Modifier = Modifier) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -408,7 +405,7 @@ private fun PriceItem(alignment: Alignment.Horizontal) {
                 .clip(shape = Shapes.large)
                 .background(PriceBackground)
                 .padding(8.dp)
-                .align(alignment)
+                .then(modifier)
         ) {
             Icon(painter = painterResource(R.drawable.ic_carousal_coin), contentDescription = null)
             Text(
@@ -422,7 +419,7 @@ private fun PriceItem(alignment: Alignment.Horizontal) {
 }
 
 @Composable
-private fun LeapAttributeItem(attribute: String) {
+private fun LeapAttributeItem(modifier: Modifier = Modifier, attribute: String) {
     Box(
         modifier = Modifier
             .clip(shape = RoundedCornerShape(8.dp))
@@ -435,7 +432,7 @@ private fun LeapAttributeItem(attribute: String) {
 
 
 @Composable
-fun AddFavorites(modifier: Modifier = Modifier, onButtonClicked: (ButtonAction) -> Unit) {
+private fun AddFavorites(modifier: Modifier = Modifier, onButtonClicked: (ButtonAction) -> Unit) {
     Row(
         horizontalArrangement = Arrangement.Center,
         modifier = Modifier

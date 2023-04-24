@@ -1,4 +1,4 @@
-package com.example.myapplication.ui
+package com.example.myapplication.productAttribute
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -17,6 +17,7 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,8 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.myapplication.R
-import com.example.myapplication.model.ButtonAction
-import com.example.myapplication.model.ProductAttributeData
+import com.example.myapplication.model.*
 import com.example.myapplication.ui.theme.PriceBackground
 import com.example.myapplication.ui.theme.PrimaryColor
 import com.example.myapplication.ui.theme.Shapes
@@ -39,9 +39,15 @@ import com.kole.myapplication.cms.nnsettings.NNSettingsString
 @Composable
 fun ProductAttributeComposable(
     modifier: Modifier = Modifier,
-    productAttributeData: ProductAttributeData,
+    viewModel: ProductAttributeViewModel,
+    productAttribute: ProductAttribute,
     onButtonClicked: (ButtonAction) -> Unit
 ) {
+    val productAttributesUIState = viewModel.prodAttrUIState.collectAsState().value
+    val productAttributeData =
+        productAttributesUIState.productAttributesData.productAttributesInfo.find { it.id == productAttribute.id }
+    val similarAttrProductsData = productAttributesUIState.similarAttrProductsData
+
     Scaffold(
         topBar = {
             TopAppBar(backgroundColor = PrimaryColor, title = {
@@ -51,7 +57,7 @@ fun ProductAttributeComposable(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = productAttributeData.name, style = Typography.h6
+                        text = productAttribute.attributeName, style = Typography.h6
                     )
                 }
             }, actions = {
@@ -67,22 +73,19 @@ fun ProductAttributeComposable(
                         modifier = Modifier
                             .align(Alignment.Center)
                             .clickable {
-                                onButtonClicked(
-                                    ButtonAction.NavigateButton(
-                                        NavigationDestination.MainScreen()
-                                    )
-                                )
+                                onButtonClicked(ButtonAction.CloseButton)
                             })
                 }
             })
         }, backgroundColor = PrimaryColor
     ) {
         Column(modifier = Modifier.padding(16.dp, 0.dp)) {
-            Text(text = productAttributeData.title, style = Typography.h5)
+            Text(text = productAttributeData?.title ?: "", style = Typography.h5)
             Text(
-                text = productAttributeData.description, modifier = Modifier.padding(0.dp, 16.dp)
+                text = productAttributeData?.description ?: "",
+                modifier = Modifier.padding(0.dp, 16.dp)
             )
-            val prodAttrName = productAttributeData.name.lowercase()
+            val prodAttrName = productAttribute.attributeName.lowercase()
             Text(
                 text = NNSettingsString(
                     "SimilarAttrProducts",
@@ -90,20 +93,22 @@ fun ProductAttributeComposable(
                     mapOf(Pair("{ATTR_NAME}", prodAttrName)),
                 ), style = Typography.h6, modifier = Modifier.padding(0.dp, 16.dp)
             )
-            SimilarProducts(productAttributeData)
+            SimilarAttrProducts(similarAttrProductsData = similarAttrProductsData)
         }
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun SimilarProducts(productAttributeData: ProductAttributeData) {
+private fun SimilarAttrProducts(
+    modifier: Modifier = Modifier, similarAttrProductsData: SimilarProductsData
+) {
     val pagerState = rememberPagerState()
 
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 128.dp)
     ) {
-        items(productAttributeData.similarProductsData.similarProducts.size) {
+        items(similarAttrProductsData.similarProducts.size) {
             Box(
                 modifier = Modifier
                     .padding(8.dp)
@@ -115,14 +120,16 @@ private fun SimilarProducts(productAttributeData: ProductAttributeData) {
                 Column(
                     modifier = Modifier.padding(16.dp)
                 ) {
-                    val similarProduct =
-                        productAttributeData.similarProductsData.similarProducts[it]
+                    val similarProduct = similarAttrProductsData.similarProducts[it]
                     HorizontalPager(
                         pageCount = similarProduct.productImages.size, state = pagerState
                     ) { page ->
                         AsyncImage(
-                            modifier = Modifier.height(128.dp).fillMaxWidth(),
-                            model = similarProduct.productImages[page], contentDescription = null
+                            modifier = Modifier
+                                .height(128.dp)
+                                .fillMaxWidth(),
+                            model = similarProduct.productImages[page],
+                            contentDescription = null
                         )
                     }
                     Text(
@@ -132,7 +139,7 @@ private fun SimilarProducts(productAttributeData: ProductAttributeData) {
                         color = Color.Black,
                         modifier = Modifier.padding(0.dp, 8.dp)
                     )
-                    PriceItem()
+                    PriceItem(Modifier.align(Alignment.Start))
                 }
             }
         }
@@ -140,17 +147,16 @@ private fun SimilarProducts(productAttributeData: ProductAttributeData) {
 }
 
 @Composable
-private fun PriceItem() {
+private fun PriceItem(modifier: Modifier = Modifier) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier
                 .clip(shape = Shapes.large)
                 .background(PriceBackground)
                 .padding(8.dp, 4.dp)
-                .align(Alignment.Start)
+                .then(modifier)
         ) {
             Icon(
                 modifier = Modifier.height(16.dp),

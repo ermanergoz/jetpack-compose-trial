@@ -1,6 +1,6 @@
 package com.example.myapplication.model
 
-import com.example.myapplication.ui.NavigationDestination
+import com.example.myapplication.NavigationDestination
 
 sealed class ButtonAction {
     object CloseButton : ButtonAction()
